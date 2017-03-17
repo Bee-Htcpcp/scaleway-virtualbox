@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Expects Ubuntu 16.06 (xenial) and kernel 4.x.
-# Based upon a blog post by Zach at http://zachzimm.com/blog/?p=191
+# Expects Ubuntu 16.04 (xenial) and kernel 4.x.
+# Based upon a blog post by Zach at http://zachzimm.com/blog/?p=191 & https://github.com/maedoc/scaleway-virtualbox
 
 set -eux
 
@@ -16,10 +16,10 @@ done
 echo "deb http://download.virtualbox.org/virtualbox/debian xenial contrib" | sudo tee -a /etc/apt/sources.list.d/virtualbox.list
 wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add -
 sudo apt update
-sudo apt-get install dkms virtualbox-5.0 libssl-dev -y
+sudo apt-get install dkms virtualbox-5.1 libssl-dev -y
 
-KERN_VERSION=$(uname -r |cut -d'-' -f1)
-EXTENDED_VERSION=$(uname -r |cut -d'-' -f2-)
+export KERN_VERSION=$(uname -r |cut -d'-' -f1)
+export EXTENDED_VERSION=$(uname -r |cut -d'-' -f2-)
 cd /var/tmp
 wget https://www.kernel.org/pub/linux/kernel/v4.x/linux-${KERN_VERSION}.tar.xz
 tar xf linux-${KERN_VERSION}.tar.xz -C /var/tmp/
@@ -37,5 +37,5 @@ NUM_CORES=$(cat /proc/cpuinfo|grep vendor_id|wc -l)
 # If you do the partial build, the vboxdrv setup step below will fail and can be fixed with a "sudo modprobe -f vboxdrv"
 # Since that's annoying, I'm leaving the full build by default.
 make -j${NUM_CORES}
-sudo -E /sbin/rcvboxdrv setup
+sudo -E /sbin/rcvboxdrv setup --kernelsourcedir "${KERN_DIR}"
 VBoxManage --version
